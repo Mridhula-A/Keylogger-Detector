@@ -1,0 +1,605 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Keylogger Detector | Security Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+
+        .history-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .history-refresh,
+        .history-action-btn,
+        .report-close {
+            background: rgba(57, 255, 136, 0.08);
+            color: #39ff88;
+            border: 1px solid rgba(57, 255, 136, 0.35);
+            border-radius: 8px;
+            padding: 9px 13px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .history-refresh:hover,
+        .history-action-btn:hover,
+        .report-close:hover {
+            background: rgba(57, 255, 136, 0.17);
+            border-color: #39ff88;
+        }
+
+        .history-action-btn {
+            margin: 3px;
+            padding: 7px 10px;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 35px 15px;
+            color: #9aa7a0;
+        }
+
+        .history-empty h3 {
+            color: #e8f5ed;
+            margin-bottom: 8px;
+        }
+
+        .history-status {
+            color: #39ff88;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .history-filter-toolbar {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .history-filter-toolbar input,
+        .history-filter-toolbar select {
+            width: 100%;
+            box-sizing: border-box;
+            background: #101713;
+            color: #e8f5ed;
+            border: 1px solid rgba(57, 255, 136, 0.25);
+            border-radius: 8px;
+            padding: 12px 14px;
+            outline: none;
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .history-filter-toolbar input:focus,
+        .history-filter-toolbar select:focus {
+            border-color: #39ff88;
+            box-shadow: 0 0 8px rgba(57, 255, 136, 0.15);
+        }
+
+        .history-filter-toolbar input::placeholder {
+            color: #84928a;
+        }
+
+        .history-filter-toolbar select option {
+            background: #101713;
+            color: #e8f5ed;
+        }
+
+        @media (max-width: 650px) {
+            .history-filter-toolbar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .history-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.78);
+        }
+
+        .history-modal[hidden] {
+            display: none;
+        }
+
+        .history-modal-content {
+            width: min(900px, 100%);
+            max-height: 85vh;
+            overflow: auto;
+            background: #101713;
+            color: #e8f5ed;
+            border: 1px solid rgba(57, 255, 136, 0.35);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .history-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .history-modal-content pre {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #080d0a;
+            border: 1px solid rgba(57, 255, 136, 0.15);
+            border-radius: 8px;
+            padding: 16px;
+            color: #c8f7d8;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <div class="brand">
+                <div class="brand-icon">K</div>
+
+                <div>
+                    <h2>KEYGUARD</h2>
+                    <span>SECURITY CENTER</span>
+                </div>
+            </div>
+
+            <div class="nav-title">MAIN MENU</div>
+
+            <nav>
+                <a href="/" class="nav-link active">
+                    <span>▦</span> Dashboard
+                </a>
+
+                <a href="#scanners" class="nav-link">
+                    <span>⌕</span> Security Scanners
+                </a>
+
+                <a href="#overview" class="nav-link">
+                    <span>◈</span> System Overview
+                </a>
+
+                <a href="#activity" class="nav-link">
+                    <span>◷</span> Activity
+                </a>
+
+                <a href="#history" class="nav-link">
+                    <span>▤</span> Scan History
+                </a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="system-status">
+                    <span class="status-dot"></span>
+
+                    <div>
+                        <strong>System Online</strong>
+                        <small>Monitoring Active</small>
+                    </div>
+                </div>
+
+                <p>KEYGUARD v1.0</p>
+            </div>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <p class="breadcrumb">SECURITY CENTER / DASHBOARD</p>
+                    <h1>Security Dashboard</h1>
+                </div>
+
+                <div class="topbar-right">
+                    <span class="live-indicator">
+                        <span class="status-dot"></span>
+                        SYSTEM ONLINE
+                    </span>
+                </div>
+            </header>
+
+            <!-- WELCOME SECTION -->
+
+            <section class="welcome-section">
+                <div>
+                    <p class="section-label">SECURITY MONITORING</p>
+
+                    <h2>
+                        Protect your system.
+                        <span>Stay one step ahead.</span>
+                    </h2>
+
+                    <p class="welcome-description">
+                        Monitor running processes, keyboard API indicators,
+                        startup entries, registry changes and suspicious files.
+                    </p>
+                </div>
+
+                <div class="shield-graphic">
+                    <div class="shield">⬡</div>
+                    <span>DEFENSE MODE</span>
+                </div>
+            </section>
+
+            <!-- OVERVIEW CARDS -->
+
+            <section id="overview" class="overview-grid">
+
+                <div class="stat-card">
+                    <div class="stat-icon">◈</div>
+                    <p>Security Modules</p>
+                    <h2>05</h2>
+                    <span>Available scanners</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">⌘</div>
+                    <p>Monitoring Status</p>
+                    <h2 class="green-text">ACTIVE</h2>
+                    <span>Ready to scan</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">▣</div>
+                    <p>Scan Mode</p>
+                    <h2>LOCAL</h2>
+                    <span>Windows system</span>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">✓</div>
+                    <p>Protection</p>
+                    <h2 class="green-text">READY</h2>
+                    <span>Detection tools loaded</span>
+                </div>
+
+            </section>
+
+            <!-- LIVE SCAN STATISTICS -->
+
+            <section class="live-statistics-section">
+
+                <div class="section-heading">
+                    <div>
+                        <p class="section-label">LIVE MONITORING</p>
+                        <h2>Security Statistics</h2>
+                    </div>
+                </div>
+
+                <div class="live-statistics-grid">
+
+                    <div class="live-stat-card">
+                        <span class="live-stat-icon">◷</span>
+                        <p>Total Scans</p>
+                        <h2 id="total-scans">0</h2>
+                        <span>Completed scans</span>
+                    </div>
+
+                    <div class="live-stat-card">
+                        <span class="live-stat-icon">⌕</span>
+                        <p>Items Scanned</p>
+                        <h2 id="total-items">0</h2>
+                        <span>Across completed scans</span>
+                    </div>
+
+                    <div class="live-stat-card">
+                        <span class="live-stat-icon">!</span>
+                        <p>Suspicious Indicators</p>
+                        <h2 id="total-suspicious">0</h2>
+                        <span>Reported indicators</span>
+                    </div>
+
+                    <div class="live-stat-card">
+                        <span class="live-stat-icon">✓</span>
+                        <p>Last Scan</p>
+                        <h2 id="last-scan-status">WAITING</h2>
+                        <span id="last-scan-name">No scan completed</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- SECURITY SCANNERS -->
+
+            <section id="scanners" class="scanner-section">
+
+                <div class="section-heading">
+                    <div>
+                        <p class="section-label">DETECTION TOOLS</p>
+                        <h2>Security Scanners</h2>
+                    </div>
+
+                    <span class="module-count">05 MODULES</span>
+                </div>
+
+                <div class="scanner-grid">
+
+                    <div class="scanner-card">
+                        <div class="scanner-card-top">
+                            <div class="scanner-icon">◈</div>
+                            <span class="scanner-number">01</span>
+                        </div>
+
+                        <h3>Process Scanner</h3>
+                        <p>
+                            Inspect running processes and identify unusual executable locations.
+                        </p>
+
+                        <button onclick="runScanner('process')">
+                            Run Scan <span>→</span>
+                        </button>
+                    </div>
+
+                    <div class="scanner-card">
+                        <div class="scanner-card-top">
+                            <div class="scanner-icon">⌨</div>
+                            <span class="scanner-number">02</span>
+                        </div>
+
+                        <h3>Keyboard API Scanner</h3>
+                        <p>
+                            Inspect executable imports for keyboard monitoring API indicators.
+                        </p>
+
+                        <button onclick="runScanner('keyboard')">
+                            Run Scan <span>→</span>
+                        </button>
+                    </div>
+
+                    <div class="scanner-card">
+                        <div class="scanner-card-top">
+                            <div class="scanner-icon">↻</div>
+                            <span class="scanner-number">03</span>
+                        </div>
+
+                        <h3>Startup Scanner</h3>
+                        <p>
+                            Examine Windows startup folders and automatic launch entries.
+                        </p>
+
+                        <button onclick="runScanner('startup')">
+                            Run Scan <span>→</span>
+                        </button>
+                    </div>
+
+                    <div class="scanner-card">
+                        <div class="scanner-card-top">
+                            <div class="scanner-icon">▤</div>
+                            <span class="scanner-number">04</span>
+                        </div>
+
+                        <h3>Registry Scanner</h3>
+                        <p>
+                            Inspect selected Windows registry entries for unusual configurations.
+                        </p>
+
+                        <button onclick="runScanner('registry')">
+                            Run Scan <span>→</span>
+                        </button>
+                    </div>
+
+                    <div class="scanner-card">
+                        <div class="scanner-card-top">
+                            <div class="scanner-icon">▧</div>
+                            <span class="scanner-number">05</span>
+                        </div>
+
+                        <h3>Suspicious File Scanner</h3>
+                        <p>
+                            Examine executable files, metadata, hidden attributes and SHA-256 hashes.
+                        </p>
+
+                        <button onclick="runScanner('file')">
+                            Run Scan <span>→</span>
+                        </button>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- SCAN RESULTS -->
+
+            <section id="activity" class="results-section">
+
+                <div class="section-heading">
+                    <div>
+                        <p class="section-label">SCAN OUTPUT</p>
+                        <h2>Scan Results</h2>
+                    </div>
+
+                    <span id="scan-status" class="result-status">
+                        WAITING FOR SCAN
+                    </span>
+                </div>
+
+                <div id="results-container" class="results-container">
+                    <div class="empty-state">
+                        <div>⌕</div>
+                        <h3>No scan results yet</h3>
+                        <p>
+                            Select a scanner above to begin security analysis.
+                        </p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- SCAN HISTORY -->
+
+            <section id="history" class="results-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <p class="section-label">DATABASE RECORDS</p>
+                        <h2>Scan History</h2>
+                    </div>
+
+                    <div class="history-toolbar">
+
+                        <span id="history-status" class="history-status">
+                            LOADING HISTORY...
+                        </span>
+
+                        <button
+                            type="button"
+                            class="history-refresh"
+                            onclick="refreshScanHistory()">
+                            ↻ Refresh
+                        </button>
+
+                        <button
+                            type="button"
+                            class="history-action-btn"
+                            onclick="exportScanHistory()">
+                            EXPORT CSV
+                        </button>
+
+                        <button
+                            type="button"
+                            class="history-action-btn"
+                            onclick="clearAllScanHistory()">
+                            CLEAR ALL
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- SEARCH AND FILTER -->
+
+                <div class="history-filter-toolbar">
+
+                    <input
+                        type="text"
+                        id="history-search"
+                        placeholder="Search by scanner name or Scan ID..."
+                        oninput="filterScanHistory()"
+                        autocomplete="off"
+                    >
+
+                    <select
+                        id="history-scanner-filter"
+                        onchange="filterScanHistory()">
+
+                        <option value="all">All Scanners</option>
+                        <option value="Process Scanner">Process Scanner</option>
+                        <option value="Keyboard API Indicator Scanner">Keyboard Scanner</option>
+                        <option value="Windows Startup Scanner">Startup Scanner</option>
+                        <option value="Registry Security Scanner">Registry Scanner</option>
+                        <option value="Suspicious File Scanner">File Scanner</option>
+
+                    </select>
+
+                    <select
+                        id="history-status-filter"
+                        onchange="filterScanHistory()">
+
+                        <option value="all">All Status</option>
+                        <option value="COMPLETED">Completed</option>
+
+                    </select>
+
+                </div>
+
+                <div id="scan-history-container" class="results-container">
+
+                    <div class="history-empty">
+                        <h3>Loading scan history...</h3>
+                        <p>
+                            Please wait while saved scan records are retrieved.
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- REPORT VIEWER MODAL -->
+
+            <div id="report-modal" class="history-modal" hidden>
+
+                <div
+                    class="history-modal-content"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="report-modal-title">
+
+                    <div class="history-modal-header">
+
+                        <h3 id="report-modal-title">
+                            Scan Report
+                        </h3>
+
+                        <button
+                            type="button"
+                            class="report-close"
+                            onclick="closeScanReport()">
+                            ✕ Close
+                        </button>
+
+                    </div>
+
+                    <pre id="report-modal-content"></pre>
+
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+
+            <footer>
+                <p>KEYGUARD SECURITY CENTER © 2026</p>
+
+                <p>
+                    Developed with <span class="heart">♥</span>
+                    <span class="developer-name">Mridhula A</span>
+                </p>
+            </footer>
+
+        </main>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>
