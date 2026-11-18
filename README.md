@@ -9,7 +9,9 @@
 A Windows-based cybersecurity application designed to identify suspicious processes, keyboard-monitoring API indicators, startup entries, registry modifications and potentially suspicious files.
 
 </p>
+## Dashboard Preview
 
+![KeyGuard Dashboard](keylogger-dectector.png)
 ---
 
 ## 🚀 Features
