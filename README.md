@@ -81,7 +81,7 @@ Keylogger-Detector/
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/Keylogger-Detector.git
+git clone https://github.com/Mridhula-A/Keylogger-Detector.git
 cd Keylogger-Detector
 ```
 
